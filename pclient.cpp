@@ -1,4 +1,5 @@
-#include<stdio.h> 
+#include<stdio.h>
+#include <string>
 #include<string.h> 
 #include<stdlib.h> 
 #include<unistd.h> 
@@ -97,6 +98,9 @@ int main()
 	strcat(path, port);
 
 	//opent file
+	//char*  path_s = "./usernote/";
+	//const char* path_c = path_s.c_str();
+	mkdir("./usernote",0777);
 	fd = open(path, O_CREAT|O_EXCL|O_WRONLY|O_APPEND|O_NONBLOCK);
 	if(fd == -1){
 		printf("fail to open file\n");
