@@ -11,6 +11,7 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<cstdlib>
+#include<signal.h>
 
 //stuct a new data structure for sending info to thread
 struct threadinfo{
@@ -38,7 +39,7 @@ void *recvsocket(void *arg) //err1
 	char writebuffer[100];
 	while(1){
 		//receive return message from client
-		memset(receivebuffer, sizeof(receivebuffer), 0);
+		memset(receivebuffer, 0, sizeof(receivebuffer));
 		n = recv(st, receivebuffer, sizeof(receivebuffer), 0); //receive message from client
 
 		//whether communication is over
@@ -59,10 +60,10 @@ void *recvsocket(void *arg) //err1
 		sprintf(sendbuffer, "User %d", port);
 		strcat(sendbuffer, " say : ");
 		strcat(sendbuffer, receivebuffer);
-		for(i=0; i<length; i++) {
+		for(i=0; i<usernum; i++) {
 			if(sock_array[i] != st) {
 				send(sock_array[i], sendbuffer, strlen(sendbuffer), 0);
-			}
+			}	
 		}
 	}
 	return NULL;
@@ -70,6 +71,16 @@ void *recvsocket(void *arg) //err1
 
 int main()
 {
+	//prevent SIGPIPE to terminate program
+	sigset_t signal_mask;
+	sigemptyset (&signal_mask);
+	sigaddset (&signal_mask, SIGPIPE);
+	int rc = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
+	if (rc != 0) {
+		printf("block sigpipe error\n");
+	}
+
+
 	//get server socket
 	int serv_sock = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in serv_addr;
@@ -131,7 +142,7 @@ int main()
 		pthread_create(&thrd[usernum], NULL, recvsocket, &thread_array[usernum]);
 		usernum++;
 
-		printf("usernum: %d\n", usernum);
+		//printf("usernum: %d\n", usernum);
 	}
 
 	close(fd);
